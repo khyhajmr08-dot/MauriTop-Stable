@@ -272,13 +272,12 @@ export default function ServiceGrid({ services, loading }: Props) {
                         className="transition-transform duration-700 group-hover:scale-105"
                       />
                       
-                      {/* Sale Badge Style */}
-                      {idx % 5 === 0 && (
+                      {/* Show only a real badge configured for this service. */}
+                      {service.badge && (
                         <div className="absolute bottom-3 right-3 z-30">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-600 rounded-full flex flex-col items-center justify-center text-white border-2 border-white/20 rotate-12 group-hover:rotate-0 transition-transform">
-                            <span className="text-[8px] sm:text-[9px] font-black leading-none">عرض</span>
-                            <span className="text-[8px] sm:text-[9px] font-black leading-none">اليوم</span>
-                          </div>
+                          <span className="inline-flex items-center rounded-full border border-[#D6B35A]/40 bg-[#0B1120]/90 px-3 py-1.5 text-[10px] font-black text-[#E8CB82] shadow-lg backdrop-blur">
+                            {service.badge}
+                          </span>
                         </div>
                       )}
                     </div>
