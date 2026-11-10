@@ -1,6 +1,6 @@
 # MAURITOP Robots.txt
 # Optimized for Google, Bing, and major search engines
-# Target Host: https://remix-remix-remix-mauripay-1590.ai.studio
+# Target Host: https://mauritop-v2-4ozx.vercel.app
 # Purpose: Protect private customer data while allowing indexing of public services
 
 User-agent: *
@@ -29,4 +29,4 @@ Disallow: /invite/
 Disallow: /api/
 
 # Sitemap location
-Sitemap: https://remix-remix-remix-mauripay-1590.ai.studio/sitemap.xml
+Sitemap: https://mauritop-v2-4ozx.vercel.app/sitemap.xml
