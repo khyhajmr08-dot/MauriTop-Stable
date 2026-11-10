@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+:root {
+  --mauri-bg: #070B14;
+  --mauri-surface-primary: #0B1120;
+  --mauri-surface-raised: #111B2E;
+  --mauri-border: #243247;
+  --mauri-emerald: #10B981;
+  --mauri-cyan: #06B6D4;
+  --mauri-gold: #D6B35A;
+  --mauri-text-main: #F8FAFC;
+  --mauri-text-secondary: #A8B3C5;
+  --mauri-error: #EF4444;
+
+  --profile-bg: #070B14;
+  --profile-surface: #0B1120;
+  --profile-surface-soft: #111B2E;
+  --profile-surface-raised: #16223B;
+  --profile-border: #243247;
+  --profile-text: #F8FAFC;
+  --profile-text-muted: #A8B3C5;
+  --profile-primary: #10B981;
+  --profile-danger: #EF4444;
+  --profile-radius-sm: 8px;
+  --profile-radius-md: 14px;
+  --profile-radius-lg: 20px;
+  
+  --bottom-nav-height: 64px;
+  --bottom-nav-offset: 12px;
+  --bottom-nav-gap: 16px;
+  --bottom-nav-clearance: calc(var(--bottom-nav-height) + var(--bottom-nav-offset) + var(--bottom-nav-gap) + env(safe-area-inset-bottom, 0px));
+}
+
+@layer base {
+  * {
+    border-color: #243247;
+  }
+  
+  body {
+    background-color: #070B14;
+    color: #F8FAFC;
+    font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B111E;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Bottom Navigation Clearance utility */
+@utility pb-bottom-nav {
+  padding-bottom: var(--bottom-nav-clearance);
+}
+
+.pb-bottom-nav {
+  padding-bottom: var(--bottom-nav-clearance) !important;
+}
+
+@media (min-width: 768px) {
+  .pb-bottom-nav {
+    padding-bottom: 0px !important;
+  }
+}
+
+/* Profile Page Components */
+.profile-page {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.5rem 1rem;
+}
+
+.profile-content-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-card {
+  background-color: var(--profile-surface);
+  border: 1px solid var(--profile-border);
+  border-radius: var(--profile-radius-lg);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+.profile-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.profile-stat-card {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.profile-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.profile-form-field label {
+  color: var(--profile-text-muted);
+}
+
+.profile-form-field input {
+  background-color: var(--profile-surface-soft);
+  border: 1px solid var(--profile-border);
+  border-radius: var(--profile-radius-sm);
+  padding: 0.65rem 0.85rem;
+  color: var(--profile-text);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.profile-form-field input:focus {
+  border-color: var(--profile-primary);
+}
+
+.profile-save-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--profile-primary);
+  color: #042f2e;
+  font-weight: 800;
+  font-size: 0.875rem;
+  border-radius: var(--profile-radius-sm);
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Button & Layout Utilities */
+.btn-primary {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #FFFFFF;
+  font-weight: 800;
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.layout-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .layout-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.layout-main-spacing {
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .layout-main-spacing {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+  }
+}
+@layer components {
+  .glass-card {
+    @apply bg-[#0B1120] border border-[#243247] shadow-[0_8px_24px_rgba(0,0,0,0.4)] rounded-2xl;
+  }
+  .surface-card {
+    @apply bg-[#0B1120] border border-[#243247] rounded-2xl;
+  }
+  .surface-raised {
+    @apply bg-[#111B2E] border border-[#243247] rounded-xl;
+  }
+  .input-field {
+    @apply bg-[#111B2E] border border-[#243247] text-[#F8FAFC] placeholder-[#A8B3C5]/60 focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]/30;
+  }
+}
