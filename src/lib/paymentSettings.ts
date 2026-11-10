@@ -21,6 +21,7 @@ export interface PaymentMethodConfig {
   integrationStatus?: PaymentIntegrationStatus;
   hidden?: boolean;
   type?: PaymentMethodType;
+  isCustom?: boolean;
   instructionsAr?: string;
   instructionsFr?: string;
   unavailableReasonAr?: string;
