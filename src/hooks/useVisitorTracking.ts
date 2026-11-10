@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, deleteField } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../lib/useAuth";
 
@@ -40,6 +40,11 @@ export function useVisitorTracking(): void {
         const device = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
         await setDoc(doc(db, "active_visitors", sessionId), {
           sessionId,
+          // Remove legacy personal fields from existing visitor documents.
+          email: deleteField(),
+          name: deleteField(),
+          phone: deleteField(),
+          userAgent: deleteField(),
           isRegistered: Boolean(user?.uid),
           device,
           path: path.slice(0, 240),
