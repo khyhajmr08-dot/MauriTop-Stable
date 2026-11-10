@@ -211,7 +211,7 @@ export default function OrderForm({ preSelectedServiceId }: { preSelectedService
         active: true,
         unavailableReasonAr: "غير متوفر حالياً",
         unavailableReasonFr: "Actuellement indisponible",
-        phone: "32014902"
+        phone: DEFAULT_PAYMENT_CONFIGS.bankily.phone
       });
     }
 
