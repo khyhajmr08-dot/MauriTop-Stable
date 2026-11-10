@@ -38,7 +38,8 @@
     "tsx": "^4.23.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
-    "ws": "^8.21.0"
+    "ws": "^8.21.0",
+    "jose": "4.15.9"
   },
   "devDependencies": {
     "@firebase/eslint-plugin-security-rules": "^0.0.2",
@@ -50,8 +51,6 @@
     "@types/ws": "^8.18.1"
   },
   "overrides": {
-    "jwks-rsa": {
-      "jose": "4.15.9"
-    }
+    "jose": "4.15.9"
   }
 }
