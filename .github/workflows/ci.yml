@@ -35,6 +35,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+      - name: Verify Firebase Admin CommonJS runtime
+        run: node -e "require('firebase-admin/app'); require('firebase-admin/auth'); require('firebase-admin/firestore'); console.log('Firebase Admin runtime imports OK')"
       - name: TypeScript check
         run: npm run lint
       - name: Production build
