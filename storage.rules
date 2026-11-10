@@ -6,22 +6,56 @@ service firebase.storage {
       return request.auth != null;
     }
 
+    function isOwner() {
+      return isSignedIn() && (
+        (request.auth.token.email != null && request.auth.token.email.lower() == 'khyhajmr08@gmail.com') ||
+        request.auth.uid == 'PqXqqCgdC1eYPz4HKHHLtDRejPD3'
+      );
+    }
+
+    function isImageUpload() {
+      return request.resource != null &&
+        request.resource.size > 0 &&
+        request.resource.size <= 10 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+    }
+
+    // Guest checkout currently needs a one-time download URL to preview/store receipts.
+    // Public get is retained for compatibility; directory listing and overwrites are denied.
     match /receipts/{fileName} {
-      allow read: if true;
-      allow write: if request.resource.size < 10 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+      allow get: if true;
+      allow list: if false;
+      allow create: if isImageUpload();
+      allow update: if false;
+      allow delete: if isOwner();
     }
 
+    // KYC files are private. Customers can access only files named with their UID prefix.
     match /kyc/{fileName} {
-      allow read: if true;
-      allow write: if isSignedIn()
-                   && request.resource.size < 10 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+      allow get: if isOwner() ||
+        (isSignedIn() && fileName.matches('^' + request.auth.uid + '_.*$'));
+      allow list: if false;
+      allow create, update: if isImageUpload() &&
+        (isOwner() || (isSignedIn() && fileName.matches('^' + request.auth.uid + '_.*$')));
+      allow delete: if isOwner();
     }
 
+    // Catalogue and editorial assets are public to view; only the owner can modify them.
+    match /services/{fileName} {
+      allow get, list: if true;
+      allow create, update: if isOwner() && isImageUpload();
+      allow delete: if isOwner();
+    }
+
+    match /posts/{fileName} {
+      allow get, list: if true;
+      allow create, update: if isOwner() && isImageUpload();
+      allow delete: if isOwner();
+    }
+
+    // Everything else is denied unless a specific path above grants access.
     match /{allPaths=**} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if false;
     }
   }
 }
