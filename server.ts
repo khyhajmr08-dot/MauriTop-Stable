@@ -558,7 +558,7 @@ async function startServer() {
   });
 
   // Dynamic Sitemap Generator for Search Engines
-  const generateSitemapXml = async (hostUrl: string = "https://remix-remix-remix-mauripay-1590.ai.studio") => {
+  const generateSitemapXml = async (hostUrl: string = "https://mauritop-v2-4ozx.vercel.app") => {
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
@@ -613,7 +613,7 @@ async function startServer() {
 
   const handleSitemapRequest = async (req: express.Request, res: express.Response) => {
     try {
-      const hostUrl = "https://remix-remix-remix-mauripay-1590.ai.studio";
+      const hostUrl = "https://mauritop-v2-4ozx.vercel.app";
       const xml = await generateSitemapXml(hostUrl);
       res.header('Content-Type', 'application/xml; charset=utf-8');
       res.status(200).send(xml);
@@ -644,8 +644,8 @@ async function startServer() {
         keyFileExpected: "/mauritop2026indexnowkey.txt",
         keyFileAltExpected: "/mauritop2026indexnowkey884729.txt",
         keyContentMatches: true,
-        sitemapUrl: "https://remix-remix-remix-mauripay-1590.ai.studio/sitemap.xml",
-        robotsUrl: "https://remix-remix-remix-mauripay-1590.ai.studio/robots.txt",
+        sitemapUrl: "https://mauritop-v2-4ozx.vercel.app/sitemap.xml",
+        robotsUrl: "https://mauritop-v2-4ozx.vercel.app/robots.txt",
         gscVerificationFile: "/googleriFWxrL7v_Sp3WfPE6csBOVKzakjy3ROeZIhwOZxHFA.html",
         status: "Local verification files and routes are active and ready"
       });
