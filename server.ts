@@ -92,14 +92,25 @@ async function startServer() {
       return res.json({
         status: "ok",
         nodeEnv: process.env.NODE_ENV,
-        checks: { firestore: "ok", firebaseAdmin: Boolean(adminApp) }
+        checks: {
+          firestore: "ok",
+          firebaseAdmin: Boolean(adminApp),
+          serviceAccountSecretConfigured: Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
+        }
       });
     } catch (error) {
       console.error("[Health] Firestore connectivity check failed:", error);
       return res.status(503).json({
         status: "degraded",
         nodeEnv: process.env.NODE_ENV,
-        checks: { firestore: "unavailable", firebaseAdmin: Boolean(adminApp) }
+        checks: {
+          firestore: "unavailable",
+          firebaseAdmin: Boolean(adminApp),
+          serviceAccountSecretConfigured: Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON),
+          reason: process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+            ? "FIRESTORE_CONNECTION_FAILED"
+            : "FIREBASE_ADMIN_CREDENTIALS_MISSING"
+        }
       });
     }
   });
