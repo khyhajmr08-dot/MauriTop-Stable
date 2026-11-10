@@ -3,7 +3,7 @@ import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import { GoogleGenAI } from "@google/genai";
 import path from "path";
-import { initializeApp, type App } from "firebase-admin/app";
+import { initializeApp, cert, type App } from "firebase-admin/app";
 import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
 import { getFirestore, FieldValue, type Firestore } from "firebase-admin/firestore";
 import crypto from "crypto";
@@ -26,11 +26,31 @@ app.use((req, res, next) => {
 async function startServer() {
   let adminApp: App | undefined;
   try {
-    adminApp = initializeApp({
-      projectId: firebaseConfig.projectId
-    });
+    const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (serviceAccountJson) {
+      const serviceAccount = JSON.parse(serviceAccountJson);
+      if (
+        !serviceAccount ||
+        typeof serviceAccount.client_email !== "string" ||
+        typeof serviceAccount.private_key !== "string" ||
+        serviceAccount.project_id !== firebaseConfig.projectId
+      ) {
+        throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON must be a valid service-account JSON for the configured Firebase project.");
+      }
+      adminApp = initializeApp({
+        credential: cert(serviceAccount),
+        projectId: firebaseConfig.projectId
+      });
+    } else {
+      // Google-hosted runtimes may provide ADC automatically; Vercel requires
+      // a service-account secret to be configured for Admin/Firestore access.
+      adminApp = initializeApp({
+        projectId: firebaseConfig.projectId
+      });
+    }
   } catch (e) {
-    console.warn("Firebase Admin not initialized", e);
+    const message = e instanceof Error ? e.message : "Unknown initialization error";
+    console.error("[Firebase Admin] Initialization failed:", message);
   }
 
   let db: Firestore | null = null;
