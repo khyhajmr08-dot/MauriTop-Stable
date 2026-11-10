@@ -517,9 +517,9 @@ export default function ServicesManager() {
       const q3 = query(collection(db, "orders"), where("serviceType", "==", service.nameAr || service.name), limit(10));
 
       const [snap1, snap2, snap3] = await Promise.all([
-        getDocs(q1).catch(() => ({ size: 0 })),
-        getDocs(q2).catch(() => ({ size: 0 })),
-        getDocs(q3).catch(() => ({ size: 0 }))
+        getDocs(q1),
+        getDocs(q2),
+        getDocs(q3)
       ]);
 
       const totalFound = (snap1?.size || 0) + (snap2?.size || 0) + (snap3?.size || 0);
