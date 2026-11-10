@@ -10,6 +10,19 @@ import crypto from "crypto";
 
 import firebaseConfig from "./firebase-applet-config.json";
 
+const app = express();
+const server = createServer(app);
+const wss = new WebSocketServer({ server, path: "/live" });
+const PORT = Number(process.env.PORT || 3000);
+
+let initializationPromise: Promise<void> | null = null;
+
+// Wait for Firebase/Admin and route registration before handling requests.
+app.use((req, res, next) => {
+  if (!initializationPromise) return res.status(503).json({ error: "SERVER_INITIALIZING" });
+  initializationPromise.then(() => next()).catch(next);
+});
+
 async function startServer() {
   let adminApp: admin.App | undefined;
   try {
@@ -33,12 +46,7 @@ async function startServer() {
     return db;
   };
 
-  const app = express();
-  app.use(express.json());
-
-  const server = createServer(app);
-  const wss = new WebSocketServer({ server, path: '/live' });
-  const PORT = 3000;
+  app.use(express.json({ limit: "1mb" }));
   
   // Lazy init Gemini client to avoid crashes if API_KEY is missing
   let ai: GoogleGenAI | null = null;
@@ -918,12 +926,25 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*all', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
+    const staticPath = process.env.VERCEL ? path.join(process.cwd(), "public") : path.join(process.cwd(), "dist");
+    app.use(express.static(staticPath));
+    app.get("*all", (req, res) => res.sendFile(path.join(staticPath, "index.html")));
   }
 
-  server.listen(PORT, "0.0.0.0", () => console.log(`Server running on http://localhost:${PORT}`));
+  app.use((error: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error("[Express] Unhandled request error:", error);
+    if (res.headersSent) return;
+    res.status(500).json({ error: "INTERNAL_SERVER_ERROR" });
+  });
+
+  if (!process.env.VERCEL) {
+    server.listen(PORT, "0.0.0.0", () => console.log("Server running on http://localhost:" + PORT));
+  }
 }
 
-startServer();
+initializationPromise = startServer();
+initializationPromise.catch((error) => {
+  console.error("[Express] Server initialization failed:", error);
+});
+
+export default server;
