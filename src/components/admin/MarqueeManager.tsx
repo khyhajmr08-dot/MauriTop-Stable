@@ -134,14 +134,18 @@ export const MarqueeManager: React.FC = () => {
               <span>إعلان عاجل</span>
             </div>
             
-            {/* Standard HTML Marquee is highly performant and smooth on mobile browsers */}
-            <marquee 
-              scrollamount={settings.marqueeSpeed} 
-              direction="right" 
-              className={`text-xs font-extrabold flex-1 select-none ${settings.marqueeTextColor}`}
-            >
-              {settings.globalNotice}
-            </marquee>
+            <div className="min-w-0 flex-1 overflow-hidden" dir="rtl" aria-label="الإعلان الحالي">
+              <style>{`@keyframes mauritop-notice-scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }`}</style>
+              <span
+                className={`inline-block whitespace-nowrap text-xs font-extrabold select-none ${settings.marqueeTextColor}`}
+                style={{
+                  animation: `mauritop-notice-scroll ${Math.max(8, 60 / Math.max(1, Number(settings.marqueeSpeed) || 6))}s linear infinite`,
+                  willChange: "transform",
+                }}
+              >
+                {settings.globalNotice}
+              </span>
+            </div>
           </div>
         ) : (
           <div className="w-full bg-slate-50 border border-slate-200 border-dashed rounded-2xl py-6 text-center text-slate-400 font-bold text-xs">
