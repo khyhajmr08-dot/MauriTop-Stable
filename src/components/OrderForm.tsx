@@ -174,7 +174,7 @@ export default function OrderForm({ preSelectedServiceId }: { preSelectedService
     
     Object.entries(paymentSettings).forEach(([key, config]) => {
       // If PayPal is not configured or disabled, do not show to customer
-      if (key === 'paypal' && (config.integrationStatus === 'not_configured' || config.enabled === false)) {
+      if (key === 'paypal' && (config.integrationStatus === 'enabled_unconfigured' || config.enabled === false)) {
         return;
       }
 
