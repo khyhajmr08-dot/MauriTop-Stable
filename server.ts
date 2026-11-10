@@ -9,7 +9,7 @@ import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
 import { getFirestore, FieldValue, type Firestore } from "firebase-admin/firestore";
 import crypto from "crypto";
 
-import firebaseConfig from "./firebase-applet-config.json";
+import firebaseConfig from "./firebase-applet-config.json" with { type: "json" };
 
 const app = express();
 const server = createServer(app);
