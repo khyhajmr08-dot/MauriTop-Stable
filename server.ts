@@ -4,8 +4,9 @@ import { WebSocketServer } from "ws";
 import { GoogleGenAI } from "@google/genai";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { getFirestore, Firestore } from "firebase-admin/firestore";
-import * as admin from "firebase-admin";
+import { initializeApp, type App } from "firebase-admin/app";
+import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
+import { getFirestore, FieldValue, type Firestore } from "firebase-admin/firestore";
 import crypto from "crypto";
 
 import firebaseConfig from "./firebase-applet-config.json";
@@ -24,9 +25,9 @@ app.use((req, res, next) => {
 });
 
 async function startServer() {
-  let adminApp: admin.App | undefined;
+  let adminApp: App | undefined;
   try {
-    adminApp = admin.initializeApp({
+    adminApp = initializeApp({
       projectId: firebaseConfig.projectId
     });
   } catch (e) {
@@ -71,13 +72,13 @@ async function startServer() {
   });
 
   // Helper to verify Firebase ID Token (for authenticated user or admin requests)
-  const verifyAuthToken = async (req: express.Request): Promise<admin.auth.DecodedIdToken | null> => {
+  const verifyAuthToken = async (req: express.Request): Promise<DecodedIdToken | null> => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
     const token = authHeader.split("Bearer ")[1];
     try {
       if (adminApp) {
-        return await admin.auth(adminApp).verifyIdToken(token);
+        return await getAuth(adminApp).verifyIdToken(token);
       }
     } catch (e) {
       console.warn("[Auth] Failed to verify ID token:", e);
@@ -85,7 +86,7 @@ async function startServer() {
     return null;
   };
 
-  const isOwnerUser = (decoded: admin.auth.DecodedIdToken | null) => {
+  const isOwnerUser = (decoded: DecodedIdToken | null) => {
     if (!decoded) return false;
     const email = (decoded.email || "").toLowerCase().trim();
     return email === "khyhajmr08@gmail.com" || decoded.uid === "PqXqqCgdC1eYPz4HKHHLtDRejPD3";
@@ -304,8 +305,8 @@ async function startServer() {
           proofUrl: proofImageUrl || "",
           attemptId: clientAttemptId,
           trackingToken: isGuest ? trackingToken : null,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
         };
 
         transaction.set(newOrderRef, orderData);
@@ -315,7 +316,7 @@ async function startServer() {
           orderId: orderId,
           payloadHash: payloadHash,
           trackingToken: isGuest ? trackingToken : null,
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
+          createdAt: FieldValue.serverTimestamp()
         });
 
         return {
@@ -437,14 +438,14 @@ async function startServer() {
 
         const updates: any = {
           status: targetStatus,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          updatedAt: FieldValue.serverTimestamp()
         };
 
         if (adminNote !== undefined) updates.adminNote = adminNote ? String(adminNote).trim() : null;
         if (rejectionReason !== undefined) updates.rejectionReason = rejectionReason ? String(rejectionReason).trim() : null;
         if (pinCode !== undefined) updates.pinCode = pinCode ? String(pinCode).trim() : null;
         if (targetStatus === "completed") {
-          updates.completedAt = admin.firestore.FieldValue.serverTimestamp();
+          updates.completedAt = FieldValue.serverTimestamp();
         }
 
         transaction.update(orderRef, updates);
@@ -467,14 +468,14 @@ async function startServer() {
 
                 transaction.update(userRef, {
                   isReferralRewarded: true,
-                  firstCompletedOrderAt: admin.firestore.FieldValue.serverTimestamp()
+                  firstCompletedOrderAt: FieldValue.serverTimestamp()
                 });
 
                 transaction.update(referrerRef, {
                   referralsCount: currentCount + 1,
                   referralEarnings: currentEarnings + 30,
                   loyaltyPoints: currentPoints + 30,
-                  updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                  updatedAt: FieldValue.serverTimestamp()
                 });
 
                 referralRewarded = true;
