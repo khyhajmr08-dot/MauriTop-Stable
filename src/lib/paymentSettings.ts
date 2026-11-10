@@ -43,7 +43,7 @@ export const DEFAULT_PAYMENT_CONFIGS: PaymentSettingsMap = {
     phone: "",
     accountHolderAr: "",
     accountHolderFr: "",
-    enabled: true,
+    enabled: false,
     unavailableReasonAr: "غير متوفر حالياً",
     unavailableReasonFr: "Actuellement indisponible",
     descAr: "الدفع الفوري السريع عبر تطبيق بنكيلي",
@@ -57,7 +57,7 @@ export const DEFAULT_PAYMENT_CONFIGS: PaymentSettingsMap = {
     phone: "",
     accountHolderAr: "",
     accountHolderFr: "",
-    enabled: true,
+    enabled: false,
     unavailableReasonAr: "غير متوفر حالياً",
     unavailableReasonFr: "Actuellement indisponible",
     descAr: "التحويل السريع والمباشر عبر سداد",
@@ -71,7 +71,7 @@ export const DEFAULT_PAYMENT_CONFIGS: PaymentSettingsMap = {
     phone: "",
     accountHolderAr: "",
     accountHolderFr: "",
-    enabled: true,
+    enabled: false,
     hidden: false,
     type: "manual_wallet",
     integrationStatus: "operational",
@@ -113,16 +113,14 @@ export function normalizePaymentSettings(raw: any): PaymentSettingsMap {
   for (const key of Object.keys(DEFAULT_PAYMENT_CONFIGS)) {
     if (methods[key]) {
       const configuredPhone = String(methods[key].phone || methods[key].accountNumber || DEFAULT_PAYMENT_CONFIGS[key].phone || '').trim();
-      const normalizedPhone = key === 'bankily' && configuredPhone === '32024902'
-        ? DEFAULT_PAYMENT_CONFIGS.bankily.phone
-        : configuredPhone;
+      const normalizedPhone = configuredPhone;
       result[key] = {
         ...DEFAULT_PAYMENT_CONFIGS[key],
         ...methods[key],
         id: key,
         // If an older settings document lacks `enabled`, preserve the safe
         // default for that method instead of accidentally enabling disabled providers.
-        enabled: typeof methods[key].enabled === 'boolean' ? methods[key].enabled : DEFAULT_PAYMENT_CONFIGS[key].enabled,
+        enabled: typeof methods[key].enabled === 'boolean' ? methods[key].enabled : Boolean(configuredPhone),
         phone: normalizedPhone,
         logoUrl: methods[key].logoUrl || undefined,
         order: typeof methods[key].order === 'number' ? methods[key].order : 0,
