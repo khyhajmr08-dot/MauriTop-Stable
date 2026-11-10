@@ -41,7 +41,9 @@ export async function uploadFileWithProgress(
   return new Promise((resolve, reject) => {
     const task = uploadBytesResumable(ref(storage, path), blob, {
       contentType: blob.type,
-      cacheControl: "public,max-age=31536000,immutable",
+      cacheControl: path.startsWith("receipts/") || path.startsWith("kyc/")
+        ? "private,no-store,max-age=0"
+        : "public,max-age=31536000,immutable",
     });
 
     let settled = false;
