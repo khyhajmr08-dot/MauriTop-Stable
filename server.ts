@@ -65,9 +65,23 @@ async function startServer() {
     return ai;
   };
 
-  // Diagnostic routes
-  app.get("/api/health", (req, res) => {
-    return res.json({ status: "ok", nodeEnv: process.env.NODE_ENV, disableHmr: process.env.DISABLE_HMR });
+  // Read-only health check: verify the actual Firestore connection, not only process startup.
+  app.get("/api/health", async (_req, res) => {
+    try {
+      await getDb().collection("settings").doc("global").get();
+      return res.json({
+        status: "ok",
+        nodeEnv: process.env.NODE_ENV,
+        checks: { firestore: "ok", firebaseAdmin: Boolean(adminApp) }
+      });
+    } catch (error) {
+      console.error("[Health] Firestore connectivity check failed:", error);
+      return res.status(503).json({
+        status: "degraded",
+        nodeEnv: process.env.NODE_ENV,
+        checks: { firestore: "unavailable", firebaseAdmin: Boolean(adminApp) }
+      });
+    }
   });
 
   // Helper to verify Firebase ID Token (for authenticated user or admin requests)
