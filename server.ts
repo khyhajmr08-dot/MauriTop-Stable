@@ -3,7 +3,6 @@ import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import { GoogleGenAI } from "@google/genai";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { initializeApp, type App } from "firebase-admin/app";
 import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
 import { getFirestore, FieldValue, type Firestore } from "firebase-admin/firestore";
@@ -919,15 +918,19 @@ async function startServer() {
     }
   });
 
-  // Vite middleware
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({ 
-      server: { middlewareMode: true, hmr: false }, 
-      appType: "spa" 
+  // Vite is loaded only for local development. Production and Vercel never
+  // import the build tool into the request runtime.
+  if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
+    const vite = await createViteServer({
+      server: { middlewareMode: true, hmr: false },
+      appType: "spa"
     });
     app.use(vite.middlewares);
   } else {
-    const staticPath = process.env.VERCEL ? path.join(process.cwd(), "public") : path.join(process.cwd(), "dist");
+    const staticPath = process.env.VERCEL
+      ? path.join(process.cwd(), "public")
+      : path.join(process.cwd(), "dist");
     app.use(express.static(staticPath));
     app.get("*all", (req, res) => res.sendFile(path.join(staticPath, "index.html")));
   }
