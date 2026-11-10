@@ -95,7 +95,6 @@ export function getProductServiceSchema(service: Service) {
   const hasActualPrice =
     rawPrice !== undefined &&
     rawPrice !== null &&
-    rawPrice !== "" &&
     Number.isFinite(numericPrice) &&
     numericPrice > 0;
 
