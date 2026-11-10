@@ -8,7 +8,7 @@ import { useAuth } from "../lib/useAuth";
 import { doc, setDoc, addDoc, collection, serverTimestamp, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { cacheService } from "../lib/cache";
-import { handleFirestoreError, OperationType, compressImage, fileToBase64, haptic, cn, isValidImageUrl, formatNumberSpacing } from "../lib/utils";
+import { handleFirestoreError, OperationType, compressImage, haptic, cn, isValidImageUrl, formatNumberSpacing } from "../lib/utils";
 import { getFallbackServiceImage, resolveServiceImage } from "../lib/serviceImages";
 import { useToast } from "../contexts/ToastContext";
 import confetti from "canvas-confetti";
@@ -567,50 +567,32 @@ export default function OrderForm({ preSelectedServiceId }: { preSelectedService
         setUploadProgress(15); 
         setProcessingStatus(language === 'ar' ? "جاري تجهيز ورفع صورة الإيصال..." : "Préparation du reçu...");
 
-        // 1. Resilient image compression: target 900x900 to ensure < 100KB payload
-        let compressedData = "";
-        try {
-          compressedData = await compressImage(file, 900, 900, 0.65);
-        } catch (compErr) {
-          console.warn("compressImage notice, falling back:", compErr);
-        }
-
-        if (!compressedData) {
-          try {
-            compressedData = await fileToBase64(file);
-          } catch (b64Err) {
-            console.warn("fileToBase64 notice:", b64Err);
-          }
-        }
-
-        // 2. Upload to Firebase Storage with resilient inline fallback
-        const payloadForUpload: Blob | File | string = compressedData || file;
-        const uploadPath = `receipts/${attemptId}_${Date.now()}.webp`;
+        // Compress only for transport; persist the receipt as a Storage URL.
+        let payloadForUpload: Blob | File | string = file;
+        let extension = (file.type.split("/")[1] || "img").replace(/[^a-z0-9]/gi, "");
 
         try {
-          const storageUrl = await uploadFileWithProgress(payloadForUpload, uploadPath, (percent) => {
-            setUploadProgress(Math.min(95, Math.max(15, percent)));
-          });
-          if (storageUrl) {
-            uploadedUrl = storageUrl;
-          } else {
-            uploadedUrl = typeof payloadForUpload === 'string' ? payloadForUpload : (compressedData || "");
+          const compressedData = await compressImage(file, 900, 900, 0.65);
+          if (compressedData.startsWith("data:image/webp")) {
+            payloadForUpload = compressedData;
+            extension = "webp";
           }
-        } catch (uploadErr) {
-          console.warn("Storage upload notice, falling back to base64 receipt representation:", uploadErr);
-          uploadedUrl = compressedData || (typeof payloadForUpload === 'string' ? payloadForUpload : "");
+        } catch (compressionError) {
+          // Upload the original File if compression is unavailable.
+          console.warn("Receipt compression skipped; uploading original image.", compressionError);
         }
 
-        // Ensure we always have receipt data preserved without exceeding Firestore 1MB document limit
-        if (!uploadedUrl) {
-          try {
-            const rawB64 = await fileToBase64(file);
-            uploadedUrl = rawB64.slice(0, 250000);
-          } catch {
-            uploadedUrl = "receipt_attached";
-          }
+        const uploadPath = `receipts/${attemptId}_${Date.now()}.${extension || "img"}`;
+        uploadedUrl = await uploadFileWithProgress(payloadForUpload, uploadPath, (percent) => {
+          setUploadProgress(Math.min(95, Math.max(15, percent)));
+        });
+
+        if (!uploadedUrl || !uploadedUrl.startsWith("https://")) {
+          throw new Error(language === "ar"
+            ? "تعذر حفظ الإيصال في التخزين الآمن. لم يتم إرسال الطلب؛ حاول مجدداً."
+            : "Impossible d'enregistrer le reçu de manière sécurisée. La commande n'a pas été envoyée.");
         }
-        setUploadProgress(100);
+
       }
 
       setProcessingStatus(language === 'ar' ? "جاري التحقق وحفظ وتأكيد الطلب..." : "Confirmation...");
