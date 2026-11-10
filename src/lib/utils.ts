@@ -84,57 +84,56 @@ export function formatNumberSpacing(num: string): string {
  * Compresses an image and returns a base64 string.
  * Helps stay within Firestore's 1MB document limit.
  */
-export async function compressImage(base64: string, maxWidth = 800, maxHeight = 800, quality = 0.75): Promise<string> {
+export async function compressImage(
+  source: string | Blob,
+  maxWidth = 800,
+  maxHeight = 800,
+  quality = 0.75
+): Promise<string> {
+  const isObjectUrl = typeof source !== "string";
+  const imageUrl = isObjectUrl ? URL.createObjectURL(source) : source;
+
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.src = base64;
-    
-    // Add a timeout for image loading
-    const timeout = setTimeout(() => {
-      reject(new Error("Image compression timed out"));
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("Image compression timed out."));
     }, 10000);
 
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      if (isObjectUrl) URL.revokeObjectURL(imageUrl);
+    };
+
     img.onload = () => {
-      clearTimeout(timeout);
       try {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round(height * (maxWidth / width));
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round(width * (maxHeight / height));
-            height = maxHeight;
-          }
-        }
-
+        const scale = Math.min(1, maxWidth / img.width, maxHeight / img.height);
+        const width = Math.max(1, Math.round(img.width * scale));
+        const height = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(base64); // Fallback to original if canvas fails
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Image canvas is unavailable.");
+        context.drawImage(img, 0, 0, width, height);
+        const result = canvas.toDataURL("image/webp", quality);
+        cleanup();
+        if (!result.startsWith("data:image/webp")) {
+          reject(new Error("Image conversion failed."));
           return;
         }
-
-        ctx.drawImage(img, 0, 0, width, height);
-        const result = canvas.toDataURL('image/webp', quality);
         resolve(result);
-      } catch (err) {
-        console.error("Canvas compression failed:", err);
-        resolve(base64); // Fallback
+      } catch (error) {
+        cleanup();
+        reject(error);
       }
     };
-    
-    img.onerror = (e) => {
-      clearTimeout(timeout);
-      console.error("Image load error for compression:", e);
-      reject(new Error("Failed to load image for compression"));
+
+    img.onerror = () => {
+      cleanup();
+      reject(new Error("Unable to load image for compression."));
     };
+    img.src = imageUrl;
   });
 }
 
