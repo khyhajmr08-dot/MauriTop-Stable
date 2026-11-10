@@ -457,20 +457,21 @@ export default function ServicesManager() {
     setIsDeleting(true);
     try {
       const previousRecordUrl = serviceToDelete.imageUrl || serviceToDelete.image;
-      if (previousRecordUrl && previousRecordUrl.includes("firebasestorage.googleapis.com")) {
-        try {
-          const oldImageRef = ref(storage, previousRecordUrl);
-          await deleteObject(oldImageRef);
-        } catch (e) {
-          console.warn("Old image deletion skipped:", e);
-        }
-      }
-
       const isBaseDefault = (serviceToDelete as any).isDefaultCatalog;
 
       if (permanent && !isBaseDefault) {
-        // Permanent document deletion from Firestore
+        // Delete the Firestore record first. Never remove the image of an archived service.
         await deleteDoc(doc(db, "services", id));
+
+        // Remove the stored image only after the record deletion succeeds.
+        if (previousRecordUrl && previousRecordUrl.includes("firebasestorage.googleapis.com")) {
+          try {
+            await deleteObject(ref(storage, previousRecordUrl));
+          } catch (e) {
+            console.warn("Orphaned service image cleanup skipped:", e);
+          }
+        }
+
         showToast(
           `تم حذف خدمة "${serviceToDelete.nameAr || serviceToDelete.name}" نهائياً من قاعدة البيانات`,
           "success"
